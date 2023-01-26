@@ -239,6 +239,12 @@ initial begin
 //  `include "tests/debug_tests.vh"
 
   $write("===================== \n");
+  $write("= TMU Tests = \n");
+  $write("===================== \n");
+  `include "tests/tmu_tests.vh"
+
+
+  $write("===================== \n");
   $write("= Instruction Tests = \n");
   $write("===================== \n");
 

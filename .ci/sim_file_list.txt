@@ -45,6 +45,8 @@
 
 ../src/modules/airi5c_timer/src/airi5c_timer.v
 
+../src/modules/tmu/tmu_ahb_monitor_dmem.v
+../src/modules/tmu/tmu_ahb_monitor_imem.v
 
 ../src/airi5c_alu.v
 ../src/airi5c_core.v
