@@ -30,6 +30,9 @@
 
 //`timescale 1ns/1ns
 
+//`define AI_Tests
+`undef AI_Tests
+
 module airi5c_top_tb();
 
 // Interface declarations for DUT interface
@@ -259,6 +262,12 @@ initial begin
     `include "tests/m_ext_tests.vh"
   `endif
 
+  `ifdef ISA_EXT_P
+    `ifdef AI_Tests
+      `include "tests/mul_simd_tests.vh"
+    `endif
+  `endif
+
   `ifdef ISA_EXT_E
     `include "tests/e_ext_tests.vh"
   `endif
@@ -270,6 +279,16 @@ initial begin
   `ifdef ISA_EXT_F
     `include "tests/f_ext_tests.vh"
   `endif
+
+`ifdef ISA_EXT_AIACC
+`ifdef AI_Tests
+  $write("===================== \n");
+  $write("= AI Accelerator    = \n");
+  $write("===================== \n");
+
+  `include "tests/ai_acc_tests.vh"
+`endif
+`endif
 
 /*
   $write("===================== \n");
