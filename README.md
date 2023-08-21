@@ -5,6 +5,7 @@
 [![Fraunhofer_IMS](https://img.shields.io/badge/Fraunhofer-IMS-179c7d.svg?longCache=true&style=flat-square&logo=fraunhofergesellschaft&logoColor=179c7d)](https://www.ims.fraunhofer.de/en.html)
 [![GitHub Pages](https://img.shields.io/website.svg?label=Documentation%20@%20GitHub%20Pages&longCache=true&style=flat-square&url=http%3A%2F%2Ffraunhofer-ims.github.io%2Fairisc_core_complex%2Findex.html&logo=GitHub)](https://fraunhofer-ims.github.io/airisc_core_complex/index.html)
 [![airisc-sim_check](https://img.shields.io/github/actions/workflow/status/Fraunhofer-IMS/airisc_core_complex/main.yml?branch=main&longCache=true&style=flat-square&label=airisc-sim&logo=Github%20Actions&logoColor=fff)](https://github.com/Fraunhofer-IMS/airisc_core_complex/actions/workflows/main.yml)
+[![DOI](https://zenodo.org/badge/437890229.svg)](https://zenodo.org/badge/latestdoi/437890229)
 
 The Fraunhofer IMS **AIRISC** is a RISC-V-powered ASIC- and FPGA-proven processor core optimized for embedded AI
 applications. It comes with a set of common peripherals together with a wide variety of optional extensions to build
@@ -39,16 +40,18 @@ a **SPI** controller also with configurable FIFO buffers and acting either as ho
 general-purpose IO ports (**GPIO**) and a RISC-V-compatible
 **on-chip debugger** that provides a JTAG interface to debug the core online and _in-system_.
 
-The provided SoC is ready for an implementation on a
-[Digilent Nexys Video](https://digilent.com/reference/programmable-logic/nexys-video/start)
-FPGA board and can be easily ported to other boards, platforms and technologies as the core itself is written in
-vendor-agnostic plain **Verilog**. The Fraunhofer IMS AIRISC is also part of
-[Intel Pathfinder for RISC-V](https://pathfinder.intel.com/) providing a full-scale RISC-V
-evaluation platform.
+The provided SoC is ready for an implementation on various FPGA boards
+([Digilent Nexys Video](https://digilent.com/reference/programmable-logic/nexys-video/start),
+[Digilent Arty A7](https://digilent.com/reference/programmable-logic/arty-a7/start) and
+[Digilent Cmod A7](https://digilent.com/reference/programmable-logic/cmod-a7/start))
+and can be easily ported to other boards, platforms and technologies as the core itself is written in
+vendor-agnostic plain **Verilog**.
 
 :bulb: For more information check out the
-[AIRISC fact sheet (PDF)](https://www.ims.fraunhofer.de/content/dam/ims/en/documents/2022-10-20%20Info%20Sheet_AIRISC%20-%20Family%20of%20RISC-V%20Cores_DINA4_Digtale%20Version.pdf)
+[AIRISC fact sheet (PDF)](https://github.com/Fraunhofer-IMS/airisc_core_complex/blob/main/doc/AIRISC%20-%20Family%20of%20RISC-V%20Cores_Info%20Sheet_Fraunhofer%20IMS.pdf)
 or have a look at the [online documentation](https://fraunhofer-ims.github.io/airisc_core_complex/index.html).
+
+[![AIRISC_CORE_COMPLEX](https://raw.githubusercontent.com/Fraunhofer-IMS/airisc_core_complex/main/doc/gfx/block_diagram.png)](https://raw.githubusercontent.com/Fraunhofer-IMS/airisc_core_complex/main/doc/gfx/block_diagram.png)
 
 ### Development
 
@@ -223,7 +226,10 @@ Fraunhofer Institute for Microelectronic Circuits and Systems, Duisburg, Germany
 
 ## External Dependencies
 
-The `*.mem` files in `tb/memfiles` are used to test/verify the core for RISC-V ISA compliance were pre-compiled by us.
+* The `*.mem` files in `tb/memfiles` are used to test/verify the core for RISC-V ISA compliance were pre-compiled by us.
 The source files were obtained from the official RISC-V
 [riscv-software-src/riscv-tests](https://github.com/riscv-software-src/riscv-tests) GitHub repository (see the
 repository's [license](https://github.com/riscv-software-src/riscv-tests/blob/master/LICENSE)).
+* The SoC's TRNG is submoduled from [github.com/stnolting/neoTRNG](https://github.com/stnolting/neoTRNG).
+* The ELF-to-plain-hex converter tool `elf2hex` is submoduled from [github.com/sifive/elf2hex](https://github.com/sifive/elf2hex).
+
