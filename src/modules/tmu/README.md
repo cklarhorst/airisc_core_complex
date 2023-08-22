@@ -1,18 +1,32 @@
-# Features:
-- [x] IBus version
-- [x] DBus version
-- [x] AHB support (no burst support)
-- [x] Count idle cycles
-- [x] Compression support (accesses to same/inc address)
-- [x] Interrupt support
+## General
+The TMU consists of the components *Monitor*, *Detect* and *Respond*.
+Its implementation is done in the migen framework, a Python toolbox for building complex digital hardware.
 
-# TODOs:
-- [x] Fix interrupts in the testbench
-- [x] Check compatibility with latest airisc_core_complex
-- [ ] Get final interrupt ids
-- [ ] Get final base address for iTMU/dTMU
-- [ ] How much area will the iTMU/dTMU use? Do we need to reduce size further?
-- [ ] Cleanup interface signal names
+This directory does only include the *Monitor* component.
+
+The *Monitor* component firstly captures the signals of interest from the SoC.
+Possible sources are among others the SoC interconnect bus (AHB), built-in self-tests (BIST) or status signals from IP components.
+To probe the SoC interconnect, various bus control signals are captured depending on the particular bus implementation.
+Internally the component buffers the captured data.
+Secondly the captured signals are combined and merged to depict the SoC's system behavior.
+Via a control input, the component can be activated to start triggering on input from the probe buffer.
+Incoming data is stored in a queue for further processing on-chip or to be transferred off-chip.
+To minimize resource usage, lossless compression methods of bus transactions are implemented:
+Accesses to the same or consecutive addresses are combined to an access group, either for rising or falling access patterns. 
+For bus transactions supplementary metadata in addition to the bus control signals is added on-chip.
+The recorded bus communication can be transferred off-chip for further analysis.
+
+
+## Memory Layout
+| Address  | Description                                                                       |
+|----------|-----------------------------------------------------------------------------------|
+| base + 0 | version identifier                                                                |
+| base + 1 | mode configuration (bit 2: compression en, bit 1: interrupt en, bit 0: record en) |
+| base + 2 | status (bit 2: interrupt, bit 1: fifo empty, bit 0: fifo full)                    |
+| base + 3 | read to pop record fifo                                                           |
+| base + 4 | record fifo lower bits                                                            |
+| base + 5 | record fifo higher bits                                                           |
+
 
 ## Recording Specification
 The TMU stores 64 bits in the following order as two 32-bit words:
@@ -39,7 +53,15 @@ The TMU stores 64 bits in the following order as two 32-bit words:
 * __master_idle_counter__ is the number of master-introduced idle cycles (by setting htrans = IDLE, regardless of whether in a transaction or outside one). This is the actual number - 1, as long as there were any idle cycles (first one does not register) (CAPS AT MAX VALUE)
 * __waitstate_counter__ counts the waitstates introduced by the slave (hready low, hresp low) (CAPS AT MAX VALUE)
 
-### Compression
+## Technical Conditions for Recording
+* Idle-counter resets on a commit
+* Waitstates-counter resets on a commit
+* Bus-Idle-bit is 1 if Htrans == IDLE, Hready = OKAY, reset at Htrans == NONSEQ
+* Error-bit is 1 if Hresp is ever ERROR
+* Record-Condition: Htrans == NONSEQ, Hready == OKAY
+* Commit-Condition: Hready == OKAY, HRESP == OKAY, Bus-Idle == 0
+
+## Compression
 Compression enables multiple transactions represented in one entry to save memory. Accesses with a spacing of 4 bytes get recognized for same-address, rising-address and falling-address accesses.
 A compression is finished when the address changes in a non-4-byte-spacing or when any of the following attributes change: _hwrite_, _hsize_, _error_, _compression-type_. 
 
@@ -47,7 +69,7 @@ __compressed_entries__ starts counting at 0. A count of one represents two trans
 
 __master_idle_counter__ starts counting at 0. When there is a number != 0 or 1, the number of idle cycles is that plus 1. Notably, in the AHB specification, the master always inserts an IDLE cycle after and ERROR2 cycle, such that an error-entry has one more idle access.
 
-### Example transaction
+## Example Transaction
 
 | Signal              | Content    |
 |---------------------|------------|
@@ -67,10 +89,18 @@ __master_idle_counter__ starts counting at 0. When there is a number != 0 or 1, 
 * 4 Idle cycles occurred before the first address access
 * 2 Waitstates were inserted somewhere in the 5 recorded accesses
 
-### Technical Conditions for Recording
-* Idle-counter resets on a commit
-* Waitstates-counter resets on a commit
-* Bus-Idle-bit is 1 if Htrans == IDLE, Hready = OKAY, reset at Htrans == NONSEQ
-* Error-bit is 1 if Hresp is ever ERROR
-* Record-Condition: Htrans == NONSEQ, Hready == OKAY
-* Commit-Condition: Hready == OKAY, HRESP == OKAY, Bus-Idle == 0
+
+## Features:
+- [x] IBus version
+- [x] DBus version
+- [x] AHB support (no burst support)
+- [x] Count idle cycles
+- [x] Compression support (accesses to same/inc/dec address)
+- [x] Interrupt support
+
+## TODOs:
+- [x] Fix interrupts in the testbench
+- [x] Check compatibility with latest airisc_core_complex
+- [ ] Get final interrupt ids
+- [x] Get final base address for iTMU/dTMU
+- [ ] How much area will the iTMU/dTMU use? Do we need to reduce size further?
