@@ -16,7 +16,6 @@ module tmu_ahb_monitor_imem(
 	output reg o_hreadyout,
 	output reg o_hresp,
 	output reg [31:0] o_hrdata,
-	input dbg_does_monitor,
 	output reg mem_filled_int,
 	input sys_clk,
 	input sys_rst
@@ -24,179 +23,165 @@ module tmu_ahb_monitor_imem(
 
 reg tmu_mem_filled = 1'd0;
 reg tmu_int_enable = 1'd0;
-reg tmu_record = 1'd0;
 reg tmu_sink_sink_valid = 1'd0;
 wire tmu_sink_sink_ready;
 reg tmu_sink_sink_first = 1'd0;
 reg tmu_sink_sink_last = 1'd0;
-reg tmu_sink_sink_payload_success = 1'd0;
 reg [31:0] tmu_sink_sink_payload_haddr = 32'd0;
-reg [1:0] tmu_sink_sink_payload_htrans = 2'd0;
-reg [2:0] tmu_sink_sink_payload_hsize = 3'd0;
-reg [3:0] tmu_sink_sink_payload_hprot = 4'd0;
 reg tmu_sink_sink_payload_hwrite = 1'd0;
-reg tmu_sink_sink_payload_hready = 1'd0;
-reg tmu_sink_sink_payload_hresp = 1'd0;
-reg [6:0] tmu_sink_sink_payload_idle = 7'd0;
+reg [2:0] tmu_sink_sink_payload_hsize = 3'd0;
+reg tmu_sink_sink_payload_error = 1'd0;
+reg [8:0] tmu_sink_sink_payload_compressed_entries = 9'd0;
+reg [1:0] tmu_sink_sink_payload_compression_type = 2'd0;
+reg [7:0] tmu_sink_sink_payload_master_idle_counter = 8'd0;
+reg [7:0] tmu_sink_sink_payload_waitstate_counter = 8'd0;
 wire tmu_source_source_valid;
-wire tmu_source_source_ready;
+reg tmu_source_source_ready = 1'd0;
 wire tmu_source_source_first;
 wire tmu_source_source_last;
-wire tmu_source_source_payload_success;
 wire [31:0] tmu_source_source_payload_haddr;
-wire [1:0] tmu_source_source_payload_htrans;
-wire [2:0] tmu_source_source_payload_hsize;
-wire [3:0] tmu_source_source_payload_hprot;
 wire tmu_source_source_payload_hwrite;
-wire tmu_source_source_payload_hready;
-wire tmu_source_source_payload_hresp;
-wire [6:0] tmu_source_source_payload_idle;
+wire [2:0] tmu_source_source_payload_hsize;
+wire tmu_source_source_payload_error;
+wire [8:0] tmu_source_source_payload_compressed_entries;
+wire [1:0] tmu_source_source_payload_compression_type;
+wire [7:0] tmu_source_source_payload_master_idle_counter;
+wire [7:0] tmu_source_source_payload_waitstate_counter;
 wire tmu_pipe_valid_sink_valid;
 wire tmu_pipe_valid_sink_ready;
 wire tmu_pipe_valid_sink_first;
 wire tmu_pipe_valid_sink_last;
-wire tmu_pipe_valid_sink_payload_success;
 wire [31:0] tmu_pipe_valid_sink_payload_haddr;
-wire [1:0] tmu_pipe_valid_sink_payload_htrans;
-wire [2:0] tmu_pipe_valid_sink_payload_hsize;
-wire [3:0] tmu_pipe_valid_sink_payload_hprot;
 wire tmu_pipe_valid_sink_payload_hwrite;
-wire tmu_pipe_valid_sink_payload_hready;
-wire tmu_pipe_valid_sink_payload_hresp;
-wire [6:0] tmu_pipe_valid_sink_payload_idle;
+wire [2:0] tmu_pipe_valid_sink_payload_hsize;
+wire tmu_pipe_valid_sink_payload_error;
+wire [8:0] tmu_pipe_valid_sink_payload_compressed_entries;
+wire [1:0] tmu_pipe_valid_sink_payload_compression_type;
+wire [7:0] tmu_pipe_valid_sink_payload_master_idle_counter;
+wire [7:0] tmu_pipe_valid_sink_payload_waitstate_counter;
 reg tmu_pipe_valid_source_valid = 1'd0;
 wire tmu_pipe_valid_source_ready;
 reg tmu_pipe_valid_source_first = 1'd0;
 reg tmu_pipe_valid_source_last = 1'd0;
-reg tmu_pipe_valid_source_payload_success = 1'd0;
 reg [31:0] tmu_pipe_valid_source_payload_haddr = 32'd0;
-reg [1:0] tmu_pipe_valid_source_payload_htrans = 2'd0;
-reg [2:0] tmu_pipe_valid_source_payload_hsize = 3'd0;
-reg [3:0] tmu_pipe_valid_source_payload_hprot = 4'd0;
 reg tmu_pipe_valid_source_payload_hwrite = 1'd0;
-reg tmu_pipe_valid_source_payload_hready = 1'd0;
-reg tmu_pipe_valid_source_payload_hresp = 1'd0;
-reg [6:0] tmu_pipe_valid_source_payload_idle = 7'd0;
+reg [2:0] tmu_pipe_valid_source_payload_hsize = 3'd0;
+reg tmu_pipe_valid_source_payload_error = 1'd0;
+reg [8:0] tmu_pipe_valid_source_payload_compressed_entries = 9'd0;
+reg [1:0] tmu_pipe_valid_source_payload_compression_type = 2'd0;
+reg [7:0] tmu_pipe_valid_source_payload_master_idle_counter = 8'd0;
+reg [7:0] tmu_pipe_valid_source_payload_waitstate_counter = 8'd0;
 reg tmu_sink_valid = 1'd0;
 wire tmu_sink_ready;
 reg tmu_sink_first = 1'd0;
 reg tmu_sink_last = 1'd0;
-reg tmu_sink_payload_success = 1'd0;
 reg [31:0] tmu_sink_payload_haddr = 32'd0;
-reg [1:0] tmu_sink_payload_htrans = 2'd0;
-reg [2:0] tmu_sink_payload_hsize = 3'd0;
-reg [3:0] tmu_sink_payload_hprot = 4'd0;
 reg tmu_sink_payload_hwrite = 1'd0;
-reg tmu_sink_payload_hready = 1'd0;
-reg tmu_sink_payload_hresp = 1'd0;
-reg [6:0] tmu_sink_payload_idle = 7'd0;
-reg tmu_sink_payload_parity = 1'd0;
-reg [8:0] tmu_sink_payload_continuous = 9'd0;
-reg tmu_sink_payload_continued_same = 1'd0;
+reg [2:0] tmu_sink_payload_hsize = 3'd0;
+reg tmu_sink_payload_error = 1'd0;
+reg [8:0] tmu_sink_payload_compressed_entries = 9'd0;
+reg [1:0] tmu_sink_payload_compression_type = 2'd0;
+reg [7:0] tmu_sink_payload_master_idle_counter = 8'd0;
+reg [7:0] tmu_sink_payload_waitstate_counter = 8'd0;
 wire tmu_source_valid;
 reg tmu_source_ready = 1'd0;
 wire tmu_source_first;
 wire tmu_source_last;
-wire tmu_source_payload_success;
 wire [31:0] tmu_source_payload_haddr;
-wire [1:0] tmu_source_payload_htrans;
-wire [2:0] tmu_source_payload_hsize;
-wire [3:0] tmu_source_payload_hprot;
 wire tmu_source_payload_hwrite;
-wire tmu_source_payload_hready;
-wire tmu_source_payload_hresp;
-wire [6:0] tmu_source_payload_idle;
-wire tmu_source_payload_parity;
-wire [8:0] tmu_source_payload_continuous;
-wire tmu_source_payload_continued_same;
+wire [2:0] tmu_source_payload_hsize;
+wire tmu_source_payload_error;
+wire [8:0] tmu_source_payload_compressed_entries;
+wire [1:0] tmu_source_payload_compression_type;
+wire [7:0] tmu_source_payload_master_idle_counter;
+wire [7:0] tmu_source_payload_waitstate_counter;
 wire tmu_re;
 reg tmu_readable = 1'd0;
 wire tmu_syncfifo_we;
 wire tmu_syncfifo_writable;
 wire tmu_syncfifo_re;
 wire tmu_syncfifo_readable;
-wire [64:0] tmu_syncfifo_din;
-wire [64:0] tmu_syncfifo_dout;
-reg [5:0] tmu_level0 = 6'd0;
+wire [65:0] tmu_syncfifo_din;
+wire [65:0] tmu_syncfifo_dout;
+reg [3:0] tmu_level0 = 4'd0;
 reg tmu_replace = 1'd0;
-reg [4:0] tmu_produce = 5'd0;
-reg [4:0] tmu_consume = 5'd0;
-reg [4:0] tmu_wrport_adr;
-wire [64:0] tmu_wrport_dat_r;
+reg [2:0] tmu_produce = 3'd0;
+reg [2:0] tmu_consume = 3'd0;
+reg [2:0] tmu_wrport_adr;
+wire [65:0] tmu_wrport_dat_r;
 wire tmu_wrport_we;
-wire [64:0] tmu_wrport_dat_w;
+wire [65:0] tmu_wrport_dat_w;
 wire tmu_do_read;
-wire [4:0] tmu_rdport_adr;
-wire [64:0] tmu_rdport_dat_r;
+wire [2:0] tmu_rdport_adr;
+wire [65:0] tmu_rdport_dat_r;
 wire tmu_rdport_re;
-wire [5:0] tmu_level1;
-wire tmu_fifo_in_payload_success;
+wire [3:0] tmu_level1;
 wire [31:0] tmu_fifo_in_payload_haddr;
-wire [1:0] tmu_fifo_in_payload_htrans;
-wire [2:0] tmu_fifo_in_payload_hsize;
-wire [3:0] tmu_fifo_in_payload_hprot;
 wire tmu_fifo_in_payload_hwrite;
-wire tmu_fifo_in_payload_hready;
-wire tmu_fifo_in_payload_hresp;
-wire [6:0] tmu_fifo_in_payload_idle;
-wire tmu_fifo_in_payload_parity;
-wire [8:0] tmu_fifo_in_payload_continuous;
-wire tmu_fifo_in_payload_continued_same;
+wire [2:0] tmu_fifo_in_payload_hsize;
+wire tmu_fifo_in_payload_error;
+wire [8:0] tmu_fifo_in_payload_compressed_entries;
+wire [1:0] tmu_fifo_in_payload_compression_type;
+wire [7:0] tmu_fifo_in_payload_master_idle_counter;
+wire [7:0] tmu_fifo_in_payload_waitstate_counter;
 wire tmu_fifo_in_first;
 wire tmu_fifo_in_last;
-wire tmu_fifo_out_payload_success;
 wire [31:0] tmu_fifo_out_payload_haddr;
-wire [1:0] tmu_fifo_out_payload_htrans;
-wire [2:0] tmu_fifo_out_payload_hsize;
-wire [3:0] tmu_fifo_out_payload_hprot;
 wire tmu_fifo_out_payload_hwrite;
-wire tmu_fifo_out_payload_hready;
-wire tmu_fifo_out_payload_hresp;
-wire [6:0] tmu_fifo_out_payload_idle;
-wire tmu_fifo_out_payload_parity;
-wire [8:0] tmu_fifo_out_payload_continuous;
-wire tmu_fifo_out_payload_continued_same;
+wire [2:0] tmu_fifo_out_payload_hsize;
+wire tmu_fifo_out_payload_error;
+wire [8:0] tmu_fifo_out_payload_compressed_entries;
+wire [1:0] tmu_fifo_out_payload_compression_type;
+wire [7:0] tmu_fifo_out_payload_master_idle_counter;
+wire [7:0] tmu_fifo_out_payload_waitstate_counter;
 wire tmu_fifo_out_first;
 wire tmu_fifo_out_last;
+reg tmu_config_record = 1'd0;
+reg tmu_config_compress = 1'd1;
+reg tmu_config_record_errors = 1'd1;
+wire tmu_commit;
+reg tmu_bus_idle = 1'd0;
 reg [31:0] tmu0 = 32'd0;
-reg [1:0] tmu1 = 2'd0;
+reg tmu1 = 1'd0;
 reg [2:0] tmu2 = 3'd0;
-reg [3:0] tmu3 = 4'd0;
-reg tmu4 = 1'd0;
-reg tmu5 = 1'd0;
-reg tmu6 = 1'd0;
-reg [6:0] tmu7 = 7'd0;
+reg tmu3 = 1'd0;
+reg [8:0] tmu4 = 9'd0;
+reg [1:0] tmu5 = 2'd0;
+reg [7:0] tmu6 = 8'd0;
+reg [7:0] tmu7 = 8'd0;
+reg tmu_config_compress_request = 1'd0;
 reg [31:0] tmu8 = 32'd0;
-reg [1:0] tmu9 = 2'd0;
+reg tmu9 = 1'd0;
 reg [2:0] tmu10 = 3'd0;
-reg [3:0] tmu11 = 4'd0;
-reg tmu12 = 1'd0;
-reg tmu13 = 1'd0;
-reg tmu14 = 1'd0;
-reg [6:0] tmu15 = 7'd0;
-reg [8:0] tmu16 = 9'd0;
-reg tmu17 = 1'd0;
-reg [1:0] tmu_initial_delay = 2'd1;
+reg tmu11 = 1'd0;
+reg [8:0] tmu12 = 9'd0;
+reg [1:0] tmu13 = 2'd0;
+reg [7:0] tmu14 = 8'd0;
+reg [7:0] tmu15 = 8'd0;
 reg [31:0] tmu_local_address;
 reg tmu_write_next_cycle = 1'd0;
 reg [31:0] tmu_last_address = 32'd0;
 wire [63:0] t_slice_proxy;
 wire [63:0] f_slice_proxy;
+reg [5:0] basiclowerer_array_muxed0;
+reg [5:0] t_array_muxed0;
+reg [5:0] basiclowerer_array_muxed1;
+reg [5:0] t_array_muxed1;
 
 // synthesis translate_off
 reg dummy_s;
 initial dummy_s <= 1'd0;
 // synthesis translate_on
 
-assign tmu_source_source_ready = (tmu_sink_ready & tmu_source_source_valid);
+assign tmu_commit = (((m_hready == 1'd1) & (m_hresp == 1'd0)) & (~tmu_bus_idle));
 
 // synthesis translate_off
 reg dummy_d;
 // synthesis translate_on
 always @(*) begin
 	tmu_local_address <= 32'd0;
-	if (((i_haddr >= 32'd3221225544) & (i_haddr < 32'd3221225608))) begin
-		tmu_local_address <= ((i_haddr - 32'd3221225544) >>> 2'd2);
+	if (((i_haddr >= 32'd3221228032) & (i_haddr < 32'd3221228096))) begin
+		tmu_local_address <= ((i_haddr - 32'd3221228032) >>> 2'd2);
 	end else begin
 		tmu_local_address <= 8'd255;
 	end
@@ -209,61 +194,51 @@ assign tmu_pipe_valid_sink_valid = tmu_sink_sink_valid;
 assign tmu_sink_sink_ready = tmu_pipe_valid_sink_ready;
 assign tmu_pipe_valid_sink_first = tmu_sink_sink_first;
 assign tmu_pipe_valid_sink_last = tmu_sink_sink_last;
-assign tmu_pipe_valid_sink_payload_success = tmu_sink_sink_payload_success;
 assign tmu_pipe_valid_sink_payload_haddr = tmu_sink_sink_payload_haddr;
-assign tmu_pipe_valid_sink_payload_htrans = tmu_sink_sink_payload_htrans;
-assign tmu_pipe_valid_sink_payload_hsize = tmu_sink_sink_payload_hsize;
-assign tmu_pipe_valid_sink_payload_hprot = tmu_sink_sink_payload_hprot;
 assign tmu_pipe_valid_sink_payload_hwrite = tmu_sink_sink_payload_hwrite;
-assign tmu_pipe_valid_sink_payload_hready = tmu_sink_sink_payload_hready;
-assign tmu_pipe_valid_sink_payload_hresp = tmu_sink_sink_payload_hresp;
-assign tmu_pipe_valid_sink_payload_idle = tmu_sink_sink_payload_idle;
+assign tmu_pipe_valid_sink_payload_hsize = tmu_sink_sink_payload_hsize;
+assign tmu_pipe_valid_sink_payload_error = tmu_sink_sink_payload_error;
+assign tmu_pipe_valid_sink_payload_compressed_entries = tmu_sink_sink_payload_compressed_entries;
+assign tmu_pipe_valid_sink_payload_compression_type = tmu_sink_sink_payload_compression_type;
+assign tmu_pipe_valid_sink_payload_master_idle_counter = tmu_sink_sink_payload_master_idle_counter;
+assign tmu_pipe_valid_sink_payload_waitstate_counter = tmu_sink_sink_payload_waitstate_counter;
 assign tmu_source_source_valid = tmu_pipe_valid_source_valid;
 assign tmu_pipe_valid_source_ready = tmu_source_source_ready;
 assign tmu_source_source_first = tmu_pipe_valid_source_first;
 assign tmu_source_source_last = tmu_pipe_valid_source_last;
-assign tmu_source_source_payload_success = tmu_pipe_valid_source_payload_success;
 assign tmu_source_source_payload_haddr = tmu_pipe_valid_source_payload_haddr;
-assign tmu_source_source_payload_htrans = tmu_pipe_valid_source_payload_htrans;
-assign tmu_source_source_payload_hsize = tmu_pipe_valid_source_payload_hsize;
-assign tmu_source_source_payload_hprot = tmu_pipe_valid_source_payload_hprot;
 assign tmu_source_source_payload_hwrite = tmu_pipe_valid_source_payload_hwrite;
-assign tmu_source_source_payload_hready = tmu_pipe_valid_source_payload_hready;
-assign tmu_source_source_payload_hresp = tmu_pipe_valid_source_payload_hresp;
-assign tmu_source_source_payload_idle = tmu_pipe_valid_source_payload_idle;
-assign tmu_syncfifo_din = {tmu_fifo_in_last, tmu_fifo_in_first, tmu_fifo_in_payload_continued_same, tmu_fifo_in_payload_continuous, tmu_fifo_in_payload_parity, tmu_fifo_in_payload_idle, tmu_fifo_in_payload_hresp, tmu_fifo_in_payload_hready, tmu_fifo_in_payload_hwrite, tmu_fifo_in_payload_hprot, tmu_fifo_in_payload_hsize, tmu_fifo_in_payload_htrans, tmu_fifo_in_payload_haddr, tmu_fifo_in_payload_success};
-assign {tmu_fifo_out_last, tmu_fifo_out_first, tmu_fifo_out_payload_continued_same, tmu_fifo_out_payload_continuous, tmu_fifo_out_payload_parity, tmu_fifo_out_payload_idle, tmu_fifo_out_payload_hresp, tmu_fifo_out_payload_hready, tmu_fifo_out_payload_hwrite, tmu_fifo_out_payload_hprot, tmu_fifo_out_payload_hsize, tmu_fifo_out_payload_htrans, tmu_fifo_out_payload_haddr, tmu_fifo_out_payload_success} = tmu_syncfifo_dout;
+assign tmu_source_source_payload_hsize = tmu_pipe_valid_source_payload_hsize;
+assign tmu_source_source_payload_error = tmu_pipe_valid_source_payload_error;
+assign tmu_source_source_payload_compressed_entries = tmu_pipe_valid_source_payload_compressed_entries;
+assign tmu_source_source_payload_compression_type = tmu_pipe_valid_source_payload_compression_type;
+assign tmu_source_source_payload_master_idle_counter = tmu_pipe_valid_source_payload_master_idle_counter;
+assign tmu_source_source_payload_waitstate_counter = tmu_pipe_valid_source_payload_waitstate_counter;
+assign tmu_syncfifo_din = {tmu_fifo_in_last, tmu_fifo_in_first, tmu_fifo_in_payload_waitstate_counter, tmu_fifo_in_payload_master_idle_counter, tmu_fifo_in_payload_compression_type, tmu_fifo_in_payload_compressed_entries, tmu_fifo_in_payload_error, tmu_fifo_in_payload_hsize, tmu_fifo_in_payload_hwrite, tmu_fifo_in_payload_haddr};
+assign {tmu_fifo_out_last, tmu_fifo_out_first, tmu_fifo_out_payload_waitstate_counter, tmu_fifo_out_payload_master_idle_counter, tmu_fifo_out_payload_compression_type, tmu_fifo_out_payload_compressed_entries, tmu_fifo_out_payload_error, tmu_fifo_out_payload_hsize, tmu_fifo_out_payload_hwrite, tmu_fifo_out_payload_haddr} = tmu_syncfifo_dout;
 assign tmu_sink_ready = tmu_syncfifo_writable;
 assign tmu_syncfifo_we = tmu_sink_valid;
 assign tmu_fifo_in_first = tmu_sink_first;
 assign tmu_fifo_in_last = tmu_sink_last;
-assign tmu_fifo_in_payload_success = tmu_sink_payload_success;
 assign tmu_fifo_in_payload_haddr = tmu_sink_payload_haddr;
-assign tmu_fifo_in_payload_htrans = tmu_sink_payload_htrans;
-assign tmu_fifo_in_payload_hsize = tmu_sink_payload_hsize;
-assign tmu_fifo_in_payload_hprot = tmu_sink_payload_hprot;
 assign tmu_fifo_in_payload_hwrite = tmu_sink_payload_hwrite;
-assign tmu_fifo_in_payload_hready = tmu_sink_payload_hready;
-assign tmu_fifo_in_payload_hresp = tmu_sink_payload_hresp;
-assign tmu_fifo_in_payload_idle = tmu_sink_payload_idle;
-assign tmu_fifo_in_payload_parity = tmu_sink_payload_parity;
-assign tmu_fifo_in_payload_continuous = tmu_sink_payload_continuous;
-assign tmu_fifo_in_payload_continued_same = tmu_sink_payload_continued_same;
+assign tmu_fifo_in_payload_hsize = tmu_sink_payload_hsize;
+assign tmu_fifo_in_payload_error = tmu_sink_payload_error;
+assign tmu_fifo_in_payload_compressed_entries = tmu_sink_payload_compressed_entries;
+assign tmu_fifo_in_payload_compression_type = tmu_sink_payload_compression_type;
+assign tmu_fifo_in_payload_master_idle_counter = tmu_sink_payload_master_idle_counter;
+assign tmu_fifo_in_payload_waitstate_counter = tmu_sink_payload_waitstate_counter;
 assign tmu_source_valid = tmu_readable;
 assign tmu_source_first = tmu_fifo_out_first;
 assign tmu_source_last = tmu_fifo_out_last;
-assign tmu_source_payload_success = tmu_fifo_out_payload_success;
 assign tmu_source_payload_haddr = tmu_fifo_out_payload_haddr;
-assign tmu_source_payload_htrans = tmu_fifo_out_payload_htrans;
-assign tmu_source_payload_hsize = tmu_fifo_out_payload_hsize;
-assign tmu_source_payload_hprot = tmu_fifo_out_payload_hprot;
 assign tmu_source_payload_hwrite = tmu_fifo_out_payload_hwrite;
-assign tmu_source_payload_hready = tmu_fifo_out_payload_hready;
-assign tmu_source_payload_hresp = tmu_fifo_out_payload_hresp;
-assign tmu_source_payload_idle = tmu_fifo_out_payload_idle;
-assign tmu_source_payload_parity = tmu_fifo_out_payload_parity;
-assign tmu_source_payload_continuous = tmu_fifo_out_payload_continuous;
-assign tmu_source_payload_continued_same = tmu_fifo_out_payload_continued_same;
+assign tmu_source_payload_hsize = tmu_fifo_out_payload_hsize;
+assign tmu_source_payload_error = tmu_fifo_out_payload_error;
+assign tmu_source_payload_compressed_entries = tmu_fifo_out_payload_compressed_entries;
+assign tmu_source_payload_compression_type = tmu_fifo_out_payload_compression_type;
+assign tmu_source_payload_master_idle_counter = tmu_fifo_out_payload_master_idle_counter;
+assign tmu_source_payload_waitstate_counter = tmu_fifo_out_payload_waitstate_counter;
 assign tmu_re = tmu_source_ready;
 assign tmu_syncfifo_re = (tmu_syncfifo_readable & ((~tmu_readable) | tmu_re));
 assign tmu_level1 = (tmu_level0 + tmu_readable);
@@ -272,7 +247,7 @@ assign tmu_level1 = (tmu_level0 + tmu_readable);
 reg dummy_d_1;
 // synthesis translate_on
 always @(*) begin
-	tmu_wrport_adr <= 5'd0;
+	tmu_wrport_adr <= 3'd0;
 	if (tmu_replace) begin
 		tmu_wrport_adr <= (tmu_produce - 1'd1);
 	end else begin
@@ -288,84 +263,286 @@ assign tmu_do_read = (tmu_syncfifo_readable & tmu_syncfifo_re);
 assign tmu_rdport_adr = tmu_consume;
 assign tmu_syncfifo_dout = tmu_rdport_dat_r;
 assign tmu_rdport_re = tmu_do_read;
-assign tmu_syncfifo_writable = (tmu_level0 != 6'd32);
+assign tmu_syncfifo_writable = (tmu_level0 != 4'd8);
 assign tmu_syncfifo_readable = (tmu_level0 != 1'd0);
-assign t_slice_proxy = {tmu_source_payload_continued_same, tmu_source_payload_continuous, tmu_source_payload_parity, tmu_source_payload_idle, tmu_source_payload_hresp, tmu_source_payload_hready, tmu_source_payload_hwrite, tmu_source_payload_hprot, tmu_source_payload_hsize, tmu_source_payload_htrans, tmu_source_payload_haddr, tmu_source_payload_success, mem_filled_int};
-assign f_slice_proxy = {tmu_source_payload_continued_same, tmu_source_payload_continuous, tmu_source_payload_parity, tmu_source_payload_idle, tmu_source_payload_hresp, tmu_source_payload_hready, tmu_source_payload_hwrite, tmu_source_payload_hprot, tmu_source_payload_hsize, tmu_source_payload_htrans, tmu_source_payload_haddr, tmu_source_payload_success, mem_filled_int};
+assign t_slice_proxy = {tmu_source_payload_waitstate_counter, tmu_source_payload_master_idle_counter, tmu_source_payload_compression_type, tmu_source_payload_compressed_entries, tmu_source_payload_error, tmu_source_payload_hsize, tmu_source_payload_hwrite, tmu_source_payload_haddr};
+assign f_slice_proxy = {tmu_source_payload_waitstate_counter, tmu_source_payload_master_idle_counter, tmu_source_payload_compression_type, tmu_source_payload_compressed_entries, tmu_source_payload_error, tmu_source_payload_hsize, tmu_source_payload_hwrite, tmu_source_payload_haddr};
+
+// synthesis translate_off
+reg dummy_d_2;
+// synthesis translate_on
+always @(*) begin
+	basiclowerer_array_muxed0 <= 6'd0;
+	case (tmu10)
+		1'd0: begin
+			basiclowerer_array_muxed0 <= 1'd1;
+		end
+		1'd1: begin
+			basiclowerer_array_muxed0 <= 2'd2;
+		end
+		2'd2: begin
+			basiclowerer_array_muxed0 <= 3'd4;
+		end
+		2'd3: begin
+			basiclowerer_array_muxed0 <= 4'd8;
+		end
+		3'd4: begin
+			basiclowerer_array_muxed0 <= 5'd16;
+		end
+		default: begin
+			basiclowerer_array_muxed0 <= 6'd32;
+		end
+	endcase
+// synthesis translate_off
+	dummy_d_2 <= dummy_s;
+// synthesis translate_on
+end
+
+// synthesis translate_off
+reg dummy_d_3;
+// synthesis translate_on
+always @(*) begin
+	t_array_muxed0 <= 6'd0;
+	case (tmu10)
+		1'd0: begin
+			t_array_muxed0 <= 1'd1;
+		end
+		1'd1: begin
+			t_array_muxed0 <= 2'd2;
+		end
+		2'd2: begin
+			t_array_muxed0 <= 3'd4;
+		end
+		2'd3: begin
+			t_array_muxed0 <= 4'd8;
+		end
+		3'd4: begin
+			t_array_muxed0 <= 5'd16;
+		end
+		default: begin
+			t_array_muxed0 <= 6'd32;
+		end
+	endcase
+// synthesis translate_off
+	dummy_d_3 <= dummy_s;
+// synthesis translate_on
+end
+
+// synthesis translate_off
+reg dummy_d_4;
+// synthesis translate_on
+always @(*) begin
+	basiclowerer_array_muxed1 <= 6'd0;
+	case (tmu10)
+		1'd0: begin
+			basiclowerer_array_muxed1 <= 1'd1;
+		end
+		1'd1: begin
+			basiclowerer_array_muxed1 <= 2'd2;
+		end
+		2'd2: begin
+			basiclowerer_array_muxed1 <= 3'd4;
+		end
+		2'd3: begin
+			basiclowerer_array_muxed1 <= 4'd8;
+		end
+		3'd4: begin
+			basiclowerer_array_muxed1 <= 5'd16;
+		end
+		default: begin
+			basiclowerer_array_muxed1 <= 6'd32;
+		end
+	endcase
+// synthesis translate_off
+	dummy_d_4 <= dummy_s;
+// synthesis translate_on
+end
+
+// synthesis translate_off
+reg dummy_d_5;
+// synthesis translate_on
+always @(*) begin
+	t_array_muxed1 <= 6'd0;
+	case (tmu10)
+		1'd0: begin
+			t_array_muxed1 <= 1'd1;
+		end
+		1'd1: begin
+			t_array_muxed1 <= 2'd2;
+		end
+		2'd2: begin
+			t_array_muxed1 <= 3'd4;
+		end
+		2'd3: begin
+			t_array_muxed1 <= 4'd8;
+		end
+		3'd4: begin
+			t_array_muxed1 <= 5'd16;
+		end
+		default: begin
+			t_array_muxed1 <= 6'd32;
+		end
+	endcase
+// synthesis translate_off
+	dummy_d_5 <= dummy_s;
+// synthesis translate_on
+end
 
 always @(posedge sys_clk) begin
-	tmu_mem_filled <= (tmu_level1 > 5'd28);
+	tmu_mem_filled <= (tmu_level1 > 3'd7);
 	mem_filled_int <= (tmu_mem_filled & tmu_int_enable);
-	tmu0 <= m_haddr;
-	tmu1 <= m_htrans;
-	tmu2 <= m_hsize;
-	tmu3 <= m_hprot;
-	tmu4 <= m_hwrite;
-	tmu5 <= m_hready;
-	tmu6 <= m_hresp;
-	if (((m_hready & (~m_hresp)) & (tmu1 == 2'd2))) begin
-		tmu_sink_sink_payload_haddr <= tmu0;
-		tmu_sink_sink_payload_htrans <= tmu1;
-		tmu_sink_sink_payload_hsize <= tmu2;
-		tmu_sink_sink_payload_hprot <= tmu3;
-		tmu_sink_sink_payload_hwrite <= tmu4;
-		tmu_sink_sink_payload_hready <= tmu5;
-		tmu_sink_sink_payload_hresp <= tmu6;
-		tmu_sink_sink_payload_idle <= tmu7;
-		tmu_sink_sink_valid <= tmu_record;
-		tmu7 <= 1'd0;
+	tmu5 <= 2'd3;
+	tmu4 <= 1'd0;
+	if (tmu_commit) begin
+		tmu6 <= 1'd0;
 	end else begin
-		if (tmu_record) begin
-			tmu7 <= (tmu7 + 1'd1);
-		end else begin
-			tmu7 <= 1'd0;
-		end
-		tmu_sink_sink_valid <= 1'd0;
-	end
-	if (((((tmu_source_source_valid & (tmu_source_source_payload_haddr == tmu8)) & (tmu_source_source_payload_hwrite == tmu12)) & (tmu_source_source_payload_hsize == tmu10)) & (tmu16 < 9'd511))) begin
-		tmu17 <= 1'd1;
-		tmu16 <= (tmu16 + 1'd1);
-		tmu15 <= (tmu15 + tmu_source_source_payload_idle);
-		tmu_sink_valid <= 1'd0;
-	end else begin
-		if ((((((tmu_source_source_valid & (tmu17 == 1'd0)) & (tmu_source_source_payload_haddr == (tmu8 + 3'd4))) & (tmu_source_source_payload_hwrite == tmu12)) & (tmu_source_source_payload_hsize == tmu10)) & (tmu16 < 9'd511))) begin
-			tmu17 <= 1'd0;
-			tmu16 <= (tmu16 + 1'd1);
-			tmu15 <= (tmu15 + tmu_source_source_payload_idle);
-			tmu8 <= (tmu8 + 3'd4);
-			tmu_sink_valid <= 1'd0;
-		end else begin
-			if (tmu_source_source_valid) begin
-				tmu8 <= tmu_source_source_payload_haddr;
-				tmu9 <= tmu_source_source_payload_htrans;
-				tmu10 <= tmu_source_source_payload_hsize;
-				tmu11 <= tmu_source_source_payload_hprot;
-				tmu12 <= tmu_source_source_payload_hwrite;
-				tmu13 <= tmu_source_source_payload_hready;
-				tmu14 <= tmu_source_source_payload_hresp;
-				tmu15 <= tmu_source_source_payload_idle;
-				tmu16 <= 1'd0;
-				tmu17 <= 1'd0;
-				if ((tmu_initial_delay > 1'd0)) begin
-					tmu_initial_delay <= (tmu_initial_delay - 1'd1);
-				end else begin
-					tmu_sink_valid <= 1'd1;
-				end
-			end else begin
-				tmu_sink_valid <= 1'd0;
+		if ((m_htrans == 1'd0)) begin
+			if ((tmu6 < 6'd63)) begin
+				tmu6 <= (tmu6 + 1'd1);
 			end
 		end
 	end
-	tmu_sink_payload_haddr <= tmu8;
-	tmu_sink_payload_htrans <= tmu9;
-	tmu_sink_payload_hsize <= tmu10;
-	tmu_sink_payload_hprot <= tmu11;
-	tmu_sink_payload_hwrite <= tmu12;
-	tmu_sink_payload_hready <= tmu13;
-	tmu_sink_payload_hresp <= tmu14;
-	tmu_sink_payload_idle <= tmu15;
-	tmu_sink_payload_continuous <= tmu16;
-	tmu_sink_payload_continued_same <= tmu17;
+	if (tmu_commit) begin
+		tmu7 <= 1'd0;
+	end else begin
+		if (((m_hready == 1'd0) & (m_hresp == 1'd0))) begin
+			if ((tmu7 < 6'd63)) begin
+				tmu7 <= (tmu7 + 1'd1);
+			end
+		end
+	end
+	if (tmu_config_record) begin
+		if ((m_htrans == 2'd2)) begin
+			tmu_bus_idle <= 1'd0;
+		end else begin
+			if ((((m_htrans == 1'd0) & (m_hready == 1'd1)) & (m_hresp != 1'd1))) begin
+				tmu_bus_idle <= 1'd1;
+			end
+		end
+		if (tmu_commit) begin
+			tmu3 <= 1'd0;
+		end else begin
+			if ((m_hresp == 1'd1)) begin
+				tmu3 <= 1'd1;
+			end
+		end
+	end
+	if ((((m_htrans == 2'd2) & (m_hready == 1'd1)) & tmu_config_record)) begin
+		tmu0 <= m_haddr;
+		tmu1 <= m_hwrite;
+		tmu2 <= m_hsize;
+	end
+	if (tmu_config_record) begin
+		tmu_sink_sink_payload_haddr <= tmu0;
+		tmu_sink_sink_payload_hwrite <= tmu1;
+		tmu_sink_sink_payload_hsize <= tmu2;
+		tmu_sink_sink_payload_error <= tmu3;
+		tmu_sink_sink_payload_compressed_entries <= tmu4;
+		tmu_sink_sink_payload_compression_type <= tmu5;
+		tmu_sink_sink_payload_master_idle_counter <= tmu6;
+		tmu_sink_sink_payload_waitstate_counter <= tmu7;
+		if ((tmu_commit & ((~tmu3) | tmu_config_record_errors))) begin
+			tmu_sink_sink_valid <= 1'd1;
+		end else begin
+			tmu_sink_sink_valid <= 1'd0;
+		end
+	end else begin
+		tmu_sink_sink_valid <= 1'd0;
+	end
+	if (tmu_config_compress) begin
+		tmu_sink_payload_haddr <= tmu8;
+		tmu_sink_payload_hwrite <= tmu9;
+		tmu_sink_payload_hsize <= tmu10;
+		tmu_sink_payload_error <= tmu11;
+		tmu_sink_payload_compressed_entries <= tmu12;
+		tmu_sink_payload_compression_type <= tmu13;
+		tmu_sink_payload_master_idle_counter <= tmu14;
+		tmu_sink_payload_waitstate_counter <= tmu15;
+		tmu_source_source_ready <= 1'd1;
+		if (tmu_source_source_valid) begin
+			if (((((((tmu8 + basiclowerer_array_muxed0) == tmu_source_source_payload_haddr) & ((tmu13 == 1'd1) | (tmu13 == 2'd3))) & (tmu9 == tmu_source_source_payload_hwrite)) & (tmu10 == tmu_source_source_payload_hsize)) & (tmu11 == tmu_source_source_payload_error))) begin
+				tmu13 <= 1'd1;
+				tmu8 <= (tmu8 + t_array_muxed0);
+				if ((tmu12 < 7'd80)) begin
+					tmu12 <= (tmu12 + 1'd1);
+				end
+				if (((tmu14 + tmu_source_source_payload_master_idle_counter) < 6'd63)) begin
+					tmu14 <= (tmu14 + tmu_source_source_payload_master_idle_counter);
+				end else begin
+					tmu14 <= 6'd63;
+				end
+				if (((tmu15 + tmu_source_source_payload_waitstate_counter) < 6'd63)) begin
+					tmu15 <= (tmu15 + tmu_source_source_payload_master_idle_counter);
+				end else begin
+					tmu15 <= 6'd63;
+				end
+				tmu_sink_valid <= 1'd0;
+			end else begin
+				if (((((((tmu8 - basiclowerer_array_muxed1) == tmu_source_source_payload_haddr) & ((tmu13 == 2'd2) | (tmu13 == 2'd3))) & (tmu9 == tmu_source_source_payload_hwrite)) & (tmu10 == tmu_source_source_payload_hsize)) & (tmu11 == tmu_source_source_payload_error))) begin
+					tmu13 <= 2'd2;
+					tmu8 <= (tmu8 - t_array_muxed1);
+					if ((tmu12 < 7'd80)) begin
+						tmu12 <= (tmu12 + 1'd1);
+					end
+					if (((tmu14 + tmu_source_source_payload_master_idle_counter) < 6'd63)) begin
+						tmu14 <= (tmu14 + tmu_source_source_payload_master_idle_counter);
+					end else begin
+						tmu14 <= 6'd63;
+					end
+					if (((tmu15 + tmu_source_source_payload_waitstate_counter) < 6'd63)) begin
+						tmu15 <= (tmu15 + tmu_source_source_payload_master_idle_counter);
+					end else begin
+						tmu15 <= 6'd63;
+					end
+					tmu_sink_valid <= 1'd0;
+				end else begin
+					if ((((((tmu8 == tmu_source_source_payload_haddr) & ((tmu13 == 1'd0) | (tmu13 == 2'd3))) & (tmu9 == tmu_source_source_payload_hwrite)) & (tmu10 == tmu_source_source_payload_hsize)) & (tmu11 == tmu_source_source_payload_error))) begin
+						tmu13 <= 1'd0;
+						if ((tmu12 < 7'd80)) begin
+							tmu12 <= (tmu12 + 1'd1);
+						end
+						if (((tmu14 + tmu_source_source_payload_master_idle_counter) < 6'd63)) begin
+							tmu14 <= (tmu14 + tmu_source_source_payload_master_idle_counter);
+						end else begin
+							tmu14 <= 6'd63;
+						end
+						if (((tmu15 + tmu_source_source_payload_waitstate_counter) < 6'd63)) begin
+							tmu15 <= (tmu15 + tmu_source_source_payload_master_idle_counter);
+						end else begin
+							tmu15 <= 6'd63;
+						end
+						tmu_sink_valid <= 1'd0;
+					end else begin
+						tmu_config_compress <= tmu_config_compress_request;
+						tmu8 <= tmu_source_source_payload_haddr;
+						tmu9 <= tmu_source_source_payload_hwrite;
+						tmu10 <= tmu_source_source_payload_hsize;
+						tmu11 <= tmu_source_source_payload_error;
+						tmu12 <= tmu_source_source_payload_compressed_entries;
+						tmu13 <= tmu_source_source_payload_compression_type;
+						tmu14 <= tmu_source_source_payload_master_idle_counter;
+						tmu15 <= tmu_source_source_payload_waitstate_counter;
+						tmu_sink_valid <= 1'd1;
+					end
+				end
+			end
+		end else begin
+			tmu_sink_valid <= 1'd0;
+		end
+	end
+	if ((~tmu_config_compress)) begin
+		tmu_sink_payload_haddr <= tmu_source_source_payload_haddr;
+		tmu_sink_payload_hwrite <= tmu_source_source_payload_hwrite;
+		tmu_sink_payload_hsize <= tmu_source_source_payload_hsize;
+		tmu_sink_payload_error <= tmu_source_source_payload_error;
+		tmu_sink_payload_compressed_entries <= tmu_source_source_payload_compressed_entries;
+		tmu_sink_payload_compression_type <= tmu_source_source_payload_compression_type;
+		tmu_sink_payload_master_idle_counter <= tmu_source_source_payload_master_idle_counter;
+		tmu_sink_payload_waitstate_counter <= tmu_source_source_payload_waitstate_counter;
+		tmu_sink_valid <= tmu_source_source_valid;
+		tmu_source_source_ready <= tmu_sink_ready;
+		tmu_config_compress <= tmu_config_compress_request;
+	end
 	if (((tmu_write_next_cycle & (tmu_last_address == 2'd3)) & (i_hwdata == 1'd1))) begin
 		tmu_source_ready <= 1'd1;
 	end else begin
@@ -375,8 +552,10 @@ always @(posedge sys_clk) begin
 		tmu_last_address <= tmu_local_address;
 		if (tmu_write_next_cycle) begin
 			if ((tmu_last_address == 1'd1)) begin
-				tmu_record <= (i_hwdata & 1'd1);
+				tmu_config_record <= (i_hwdata & 1'd1);
 				tmu_int_enable <= ((i_hwdata & 2'd2) >>> 1'd1);
+				tmu_config_compress_request <= ((i_hwdata & 3'd4) >>> 2'd2);
+				tmu_config_record_errors <= ((i_hwdata & 4'd8) >>> 2'd3);
 			end
 			if ((~i_hwrite)) begin
 				tmu_write_next_cycle <= 1'd0;
@@ -392,14 +571,14 @@ always @(posedge sys_clk) begin
 		end else begin
 			if ((tmu_local_address == 1'd1)) begin
 				if ((~i_hwrite)) begin
-					o_hrdata <= {tmu_int_enable, tmu_record};
+					o_hrdata <= {tmu_config_compress, tmu_int_enable, tmu_config_record};
 				end else begin
 					tmu_write_next_cycle <= 1'd1;
 				end
 			end else begin
 				if ((tmu_local_address == 2'd2)) begin
 					if ((~i_hwrite)) begin
-						o_hrdata <= {(tmu_level1 >= 6'd32), (tmu_level1 == 1'd0), mem_filled_int};
+						o_hrdata <= {(tmu_level1 >= 4'd8), (tmu_level1 == 1'd0), mem_filled_int};
 					end
 				end else begin
 					if ((tmu_local_address == 2'd3)) begin
@@ -429,15 +608,14 @@ always @(posedge sys_clk) begin
 		tmu_pipe_valid_source_valid <= tmu_pipe_valid_sink_valid;
 		tmu_pipe_valid_source_first <= tmu_pipe_valid_sink_first;
 		tmu_pipe_valid_source_last <= tmu_pipe_valid_sink_last;
-		tmu_pipe_valid_source_payload_success <= tmu_pipe_valid_sink_payload_success;
 		tmu_pipe_valid_source_payload_haddr <= tmu_pipe_valid_sink_payload_haddr;
-		tmu_pipe_valid_source_payload_htrans <= tmu_pipe_valid_sink_payload_htrans;
-		tmu_pipe_valid_source_payload_hsize <= tmu_pipe_valid_sink_payload_hsize;
-		tmu_pipe_valid_source_payload_hprot <= tmu_pipe_valid_sink_payload_hprot;
 		tmu_pipe_valid_source_payload_hwrite <= tmu_pipe_valid_sink_payload_hwrite;
-		tmu_pipe_valid_source_payload_hready <= tmu_pipe_valid_sink_payload_hready;
-		tmu_pipe_valid_source_payload_hresp <= tmu_pipe_valid_sink_payload_hresp;
-		tmu_pipe_valid_source_payload_idle <= tmu_pipe_valid_sink_payload_idle;
+		tmu_pipe_valid_source_payload_hsize <= tmu_pipe_valid_sink_payload_hsize;
+		tmu_pipe_valid_source_payload_error <= tmu_pipe_valid_sink_payload_error;
+		tmu_pipe_valid_source_payload_compressed_entries <= tmu_pipe_valid_sink_payload_compressed_entries;
+		tmu_pipe_valid_source_payload_compression_type <= tmu_pipe_valid_sink_payload_compression_type;
+		tmu_pipe_valid_source_payload_master_idle_counter <= tmu_pipe_valid_sink_payload_master_idle_counter;
+		tmu_pipe_valid_source_payload_waitstate_counter <= tmu_pipe_valid_sink_payload_waitstate_counter;
 	end
 	if (tmu_syncfifo_re) begin
 		tmu_readable <= 1'd1;
@@ -468,69 +646,68 @@ always @(posedge sys_clk) begin
 		mem_filled_int <= 1'd0;
 		tmu_mem_filled <= 1'd0;
 		tmu_int_enable <= 1'd0;
-		tmu_record <= 1'd0;
 		tmu_sink_sink_valid <= 1'd0;
 		tmu_sink_sink_payload_haddr <= 32'd0;
-		tmu_sink_sink_payload_htrans <= 2'd0;
-		tmu_sink_sink_payload_hsize <= 3'd0;
-		tmu_sink_sink_payload_hprot <= 4'd0;
 		tmu_sink_sink_payload_hwrite <= 1'd0;
-		tmu_sink_sink_payload_hready <= 1'd0;
-		tmu_sink_sink_payload_hresp <= 1'd0;
-		tmu_sink_sink_payload_idle <= 7'd0;
+		tmu_sink_sink_payload_hsize <= 3'd0;
+		tmu_sink_sink_payload_error <= 1'd0;
+		tmu_sink_sink_payload_compressed_entries <= 9'd0;
+		tmu_sink_sink_payload_compression_type <= 2'd0;
+		tmu_sink_sink_payload_master_idle_counter <= 8'd0;
+		tmu_sink_sink_payload_waitstate_counter <= 8'd0;
+		tmu_source_source_ready <= 1'd0;
 		tmu_pipe_valid_source_valid <= 1'd0;
-		tmu_pipe_valid_source_payload_success <= 1'd0;
 		tmu_pipe_valid_source_payload_haddr <= 32'd0;
-		tmu_pipe_valid_source_payload_htrans <= 2'd0;
-		tmu_pipe_valid_source_payload_hsize <= 3'd0;
-		tmu_pipe_valid_source_payload_hprot <= 4'd0;
 		tmu_pipe_valid_source_payload_hwrite <= 1'd0;
-		tmu_pipe_valid_source_payload_hready <= 1'd0;
-		tmu_pipe_valid_source_payload_hresp <= 1'd0;
-		tmu_pipe_valid_source_payload_idle <= 7'd0;
+		tmu_pipe_valid_source_payload_hsize <= 3'd0;
+		tmu_pipe_valid_source_payload_error <= 1'd0;
+		tmu_pipe_valid_source_payload_compressed_entries <= 9'd0;
+		tmu_pipe_valid_source_payload_compression_type <= 2'd0;
+		tmu_pipe_valid_source_payload_master_idle_counter <= 8'd0;
+		tmu_pipe_valid_source_payload_waitstate_counter <= 8'd0;
 		tmu_sink_valid <= 1'd0;
 		tmu_sink_payload_haddr <= 32'd0;
-		tmu_sink_payload_htrans <= 2'd0;
-		tmu_sink_payload_hsize <= 3'd0;
-		tmu_sink_payload_hprot <= 4'd0;
 		tmu_sink_payload_hwrite <= 1'd0;
-		tmu_sink_payload_hready <= 1'd0;
-		tmu_sink_payload_hresp <= 1'd0;
-		tmu_sink_payload_idle <= 7'd0;
-		tmu_sink_payload_continuous <= 9'd0;
-		tmu_sink_payload_continued_same <= 1'd0;
+		tmu_sink_payload_hsize <= 3'd0;
+		tmu_sink_payload_error <= 1'd0;
+		tmu_sink_payload_compressed_entries <= 9'd0;
+		tmu_sink_payload_compression_type <= 2'd0;
+		tmu_sink_payload_master_idle_counter <= 8'd0;
+		tmu_sink_payload_waitstate_counter <= 8'd0;
 		tmu_source_ready <= 1'd0;
 		tmu_readable <= 1'd0;
-		tmu_level0 <= 6'd0;
-		tmu_produce <= 5'd0;
-		tmu_consume <= 5'd0;
+		tmu_level0 <= 4'd0;
+		tmu_produce <= 3'd0;
+		tmu_consume <= 3'd0;
+		tmu_config_record <= 1'd0;
+		tmu_config_compress <= 1'd1;
+		tmu_config_record_errors <= 1'd1;
+		tmu_bus_idle <= 1'd0;
 		tmu0 <= 32'd0;
-		tmu1 <= 2'd0;
+		tmu1 <= 1'd0;
 		tmu2 <= 3'd0;
-		tmu3 <= 4'd0;
-		tmu4 <= 1'd0;
-		tmu5 <= 1'd0;
-		tmu6 <= 1'd0;
-		tmu7 <= 7'd0;
+		tmu3 <= 1'd0;
+		tmu4 <= 9'd0;
+		tmu5 <= 2'd0;
+		tmu6 <= 8'd0;
+		tmu7 <= 8'd0;
+		tmu_config_compress_request <= 1'd0;
 		tmu8 <= 32'd0;
-		tmu9 <= 2'd0;
+		tmu9 <= 1'd0;
 		tmu10 <= 3'd0;
-		tmu11 <= 4'd0;
-		tmu12 <= 1'd0;
-		tmu13 <= 1'd0;
-		tmu14 <= 1'd0;
-		tmu15 <= 7'd0;
-		tmu16 <= 9'd0;
-		tmu17 <= 1'd0;
-		tmu_initial_delay <= 2'd1;
+		tmu11 <= 1'd0;
+		tmu12 <= 9'd0;
+		tmu13 <= 2'd0;
+		tmu14 <= 8'd0;
+		tmu15 <= 8'd0;
 		tmu_write_next_cycle <= 1'd0;
 		tmu_last_address <= 32'd0;
 	end
 end
 
-reg [64:0] storage[0:31];
-reg [64:0] memdat;
-reg [64:0] memdat_1;
+reg [65:0] storage[0:7];
+reg [65:0] memdat;
+reg [65:0] memdat_1;
 always @(posedge sys_clk) begin
 	if (tmu_wrport_we)
 		storage[tmu_wrport_adr] <= tmu_wrport_dat_w;

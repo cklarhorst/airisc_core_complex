@@ -186,7 +186,6 @@ module airi5c_top_asic(
         
         .mem_filled_int(monitor_int), // Include interrupt
         
-        .dbg_does_monitor(),
         .sys_clk(clk),
         .sys_rst(~nrst)
 );
@@ -219,7 +218,6 @@ module airi5c_top_asic(
         
         .mem_filled_int(dmonitor_int), // Include interrupt
         
-        .dbg_does_monitor(),
         .sys_clk(clk),
         .sys_rst(~nrst)
 );
@@ -259,7 +257,7 @@ end
   airi5c_periph_mux #
   (
     .S_COUNT(9),
-    .S_BASE_ADDR({`MEMORY_BASE_ADDR,`SYSTEM_TIMER_BASE_ADDR,`UART0_BASE_ADDR,`SPI0_BASE_ADDR,`GPIO0_BASE_ADDR,`ICAP_BASE_ADDR,`TRNG_BASE_ADDR, 32'hC0000048, 32'hC0000068}),
+    .S_BASE_ADDR({`MEMORY_BASE_ADDR,`SYSTEM_TIMER_BASE_ADDR,`UART0_BASE_ADDR,`SPI0_BASE_ADDR,`GPIO0_BASE_ADDR,`ICAP_BASE_ADDR,`TRNG_BASE_ADDR, 32'hC0000A00, 32'hC0000A20}),
     .S_ADDR_WIDTH({`MEMORY_ADDR_WIDTH,`SYSTEM_TIMER_ADDR_WIDTH,`UART0_ADDR_WIDTH,`SPI0_ADDR_WIDTH,`GPIO0_ADDR_WIDTH,`ICAP_ADDR_WIDTH,`TRNG_ADDR_WIDTH, 32'd5, 32'd5})
   )
   peripheral_mux ( 
