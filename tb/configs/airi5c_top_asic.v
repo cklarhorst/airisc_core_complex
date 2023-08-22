@@ -454,7 +454,7 @@ airi5c_core airi5c(
   .testmode_i(testmode),
 
   .ndmreset_o(ndmreset),
-  .ext_interrupts_i({monitor_int, dmonitor_int, {`N_EXT_INTS-2{ext_interrupt}}}),
+  .ext_interrupts_i({{`N_EXT_INTS-2{ext_interrupt}}, dmonitor_int, monitor_int}),
   .system_timer_tick_i(system_timer_tick),
 
   .imem_haddr_o(imem_haddr),
