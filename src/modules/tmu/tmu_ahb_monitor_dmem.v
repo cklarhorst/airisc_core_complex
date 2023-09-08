@@ -21,7 +21,8 @@ module tmu_ahb_monitor_dmem(
 	input sys_rst
 );
 
-reg tmu_mem_filled = 1'd0;
+reg [4:0] tmu_int_thres = 5'd9;
+wire tmu_mem_filled;
 reg tmu_int_enable = 1'd0;
 reg tmu_sink_sink_valid = 1'd0;
 wire tmu_sink_sink_ready;
@@ -105,14 +106,14 @@ wire [65:0] tmu_syncfifo_din;
 wire [65:0] tmu_syncfifo_dout;
 reg [3:0] tmu_level0 = 4'd0;
 reg tmu_replace = 1'd0;
-reg [2:0] tmu_produce = 3'd0;
-reg [2:0] tmu_consume = 3'd0;
-reg [2:0] tmu_wrport_adr;
+reg [3:0] tmu_produce = 4'd0;
+reg [3:0] tmu_consume = 4'd0;
+reg [3:0] tmu_wrport_adr;
 wire [65:0] tmu_wrport_dat_r;
 wire tmu_wrport_we;
 wire [65:0] tmu_wrport_dat_w;
 wire tmu_do_read;
-wire [2:0] tmu_rdport_adr;
+wire [3:0] tmu_rdport_adr;
 wire [65:0] tmu_rdport_dat_r;
 wire tmu_rdport_re;
 wire [3:0] tmu_level1;
@@ -173,6 +174,7 @@ reg dummy_s;
 initial dummy_s <= 1'd0;
 // synthesis translate_on
 
+assign tmu_mem_filled = (tmu_level1 >= tmu_int_thres);
 assign tmu_commit = (((m_hready == 1'd1) & (m_hresp == 1'd0)) & (~tmu_bus_idle));
 
 // synthesis translate_off
@@ -247,7 +249,7 @@ assign tmu_level1 = (tmu_level0 + tmu_readable);
 reg dummy_d_1;
 // synthesis translate_on
 always @(*) begin
-	tmu_wrport_adr <= 3'd0;
+	tmu_wrport_adr <= 4'd0;
 	if (tmu_replace) begin
 		tmu_wrport_adr <= (tmu_produce - 1'd1);
 	end else begin
@@ -263,7 +265,7 @@ assign tmu_do_read = (tmu_syncfifo_readable & tmu_syncfifo_re);
 assign tmu_rdport_adr = tmu_consume;
 assign tmu_syncfifo_dout = tmu_rdport_dat_r;
 assign tmu_rdport_re = tmu_do_read;
-assign tmu_syncfifo_writable = (tmu_level0 != 4'd8);
+assign tmu_syncfifo_writable = (tmu_level0 != 4'd10);
 assign tmu_syncfifo_readable = (tmu_level0 != 1'd0);
 assign t_slice_proxy = {tmu_source_payload_waitstate_counter, tmu_source_payload_master_idle_counter, tmu_source_payload_compression_type, tmu_source_payload_compressed_entries, tmu_source_payload_error, tmu_source_payload_hsize, tmu_source_payload_hwrite, tmu_source_payload_haddr};
 assign f_slice_proxy = {tmu_source_payload_waitstate_counter, tmu_source_payload_master_idle_counter, tmu_source_payload_compression_type, tmu_source_payload_compressed_entries, tmu_source_payload_error, tmu_source_payload_hsize, tmu_source_payload_hwrite, tmu_source_payload_haddr};
@@ -389,7 +391,6 @@ always @(*) begin
 end
 
 always @(posedge sys_clk) begin
-	tmu_mem_filled <= (tmu_level1 > 3'd7);
 	mem_filled_int <= (tmu_mem_filled & tmu_int_enable);
 	tmu5 <= 2'd3;
 	tmu4 <= 1'd0;
@@ -556,6 +557,7 @@ always @(posedge sys_clk) begin
 				tmu_int_enable <= ((i_hwdata & 2'd2) >>> 1'd1);
 				tmu_config_compress_request <= ((i_hwdata & 3'd4) >>> 2'd2);
 				tmu_config_record_errors <= ((i_hwdata & 4'd8) >>> 2'd3);
+				tmu_int_thres <= ((i_hwdata & 9'd496) >>> 3'd4);
 			end
 			if ((~i_hwrite)) begin
 				tmu_write_next_cycle <= 1'd0;
@@ -566,19 +568,19 @@ always @(posedge sys_clk) begin
 		end
 		if ((tmu_local_address == 1'd0)) begin
 			if ((~i_hwrite)) begin
-				o_hrdata <= 31'd1414354256;
+				o_hrdata <= 31'd1414354257;
 			end
 		end else begin
 			if ((tmu_local_address == 1'd1)) begin
 				if ((~i_hwrite)) begin
-					o_hrdata <= {tmu_config_compress, tmu_int_enable, tmu_config_record};
+					o_hrdata <= {tmu_int_thres, tmu_config_record_errors, tmu_config_compress, tmu_int_enable, tmu_config_record};
 				end else begin
 					tmu_write_next_cycle <= 1'd1;
 				end
 			end else begin
 				if ((tmu_local_address == 2'd2)) begin
 					if ((~i_hwrite)) begin
-						o_hrdata <= {(tmu_level1 >= 4'd8), (tmu_level1 == 1'd0), mem_filled_int};
+						o_hrdata <= {(tmu_level1 >= 4'd10), (tmu_level1 == 1'd0), mem_filled_int};
 					end
 				end else begin
 					if ((tmu_local_address == 2'd3)) begin
@@ -625,10 +627,18 @@ always @(posedge sys_clk) begin
 		end
 	end
 	if (((tmu_syncfifo_we & tmu_syncfifo_writable) & (~tmu_replace))) begin
-		tmu_produce <= (tmu_produce + 1'd1);
+		if ((tmu_produce == 4'd9)) begin
+			tmu_produce <= 1'd0;
+		end else begin
+			tmu_produce <= (tmu_produce + 1'd1);
+		end
 	end
 	if (tmu_do_read) begin
-		tmu_consume <= (tmu_consume + 1'd1);
+		if ((tmu_consume == 4'd9)) begin
+			tmu_consume <= 1'd0;
+		end else begin
+			tmu_consume <= (tmu_consume + 1'd1);
+		end
 	end
 	if (((tmu_syncfifo_we & tmu_syncfifo_writable) & (~tmu_replace))) begin
 		if ((~tmu_do_read)) begin
@@ -643,8 +653,8 @@ always @(posedge sys_clk) begin
 		o_hreadyout <= 1'd1;
 		o_hresp <= 1'd0;
 		o_hrdata <= 32'd0;
+		tmu_int_thres <= 5'd9;
 		mem_filled_int <= 1'd0;
-		tmu_mem_filled <= 1'd0;
 		tmu_int_enable <= 1'd0;
 		tmu_sink_sink_valid <= 1'd0;
 		tmu_sink_sink_payload_haddr <= 32'd0;
@@ -677,8 +687,8 @@ always @(posedge sys_clk) begin
 		tmu_source_ready <= 1'd0;
 		tmu_readable <= 1'd0;
 		tmu_level0 <= 4'd0;
-		tmu_produce <= 3'd0;
-		tmu_consume <= 3'd0;
+		tmu_produce <= 4'd0;
+		tmu_consume <= 4'd0;
 		tmu_config_record <= 1'd0;
 		tmu_config_compress <= 1'd1;
 		tmu_config_record_errors <= 1'd1;
@@ -705,7 +715,7 @@ always @(posedge sys_clk) begin
 	end
 end
 
-reg [65:0] storage[0:7];
+reg [65:0] storage[0:9];
 reg [65:0] memdat;
 reg [65:0] memdat_1;
 always @(posedge sys_clk) begin

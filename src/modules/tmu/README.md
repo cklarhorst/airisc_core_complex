@@ -18,14 +18,14 @@ The recorded bus communication can be transferred off-chip for further analysis.
 
 
 ## Memory Layout
-| Address  | Description                                                                       |
-|----------|-----------------------------------------------------------------------------------|
-| base + 0 | version identifier                                                                |
-| base + 1 | mode configuration (bit 2: compression en, bit 1: interrupt en, bit 0: record en) |
-| base + 2 | status (bit 2: interrupt, bit 1: fifo empty, bit 0: fifo full)                    |
-| base + 3 | read to pop record fifo                                                           |
-| base + 4 | record fifo lower bits                                                            |
-| base + 5 | record fifo higher bits                                                           |
+| Address (+ word)  | Description                                                                                                                      |
+|----------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| base + 0 | version identifier                                                                                                                        |
+| base + 1 | mode configuration (bit 5-8: interrupt threshold, bit 3: record bus errors, bit 2: compression en, bit 1: interrupt en, bit 0: record en) |
+| base + 2 | status (bit 2: interrupt, bit 1: fifo empty, bit 0: fifo full)                                                                            |
+| base + 3 | write 1 to pop one element from record fifo                                                                                               |
+| base + 4 | record fifo lower bits                                                                                                                    |
+| base + 5 | record fifo higher bits                                                                                                                   |
 
 
 ## Recording Specification
@@ -89,6 +89,21 @@ __master_idle_counter__ starts counting at 0. When there is a number != 0 or 1, 
 * 4 Idle cycles occurred before the first address access
 * 2 Waitstates were inserted somewhere in the 5 recorded accesses
 
+## Unit tests
+| Name                       | TMU  | Description                                                       |
+|----------------------------|------|-------------------------------------------------------------------|
+| check_defaults             | i, d | Check mode, status field after reset                              | 
+| check_version              | i, d | Check TMU version field                                           |
+| check_interrupt            | i, d | Check TMU throws interrupt                                        |
+| no_interrupt_flush         | i, d | Check TMU don't throw interrupt, flush records, check TMU is empty| 
+| no_interrupt_readout       | i, d | Check TMU don't throw interrupt, read records, check TMU is empty | 
+| test_mode_readout          | i, d | Set TMU modes, Check TMU modes                                    |
+| interrupt_and_flush        | i, d | Check TMU throws interrupt + flush records, check TMU is empty    |
+| interrupt_and_read         | i, d | Check TMU throws interrupt + read records, check TMU is empty     |
+| interrupt_read_check       | d    | Use no compression. Check TMU throws interrupt + verify records, check TMU is empty (might break depending on compiler, but generated memfile was tested and must work) |
+| interrupt_read_check_multi | d    | Use compression. Try 5 times: Check TMU throws interrupt + verify records, check TMU is empty (might break depending on compiler, but generated memfile was tested and must work)  |
+
+
 
 ## Features:
 - [x] IBus version
@@ -97,10 +112,11 @@ __master_idle_counter__ starts counting at 0. When there is a number != 0 or 1, 
 - [x] Count idle cycles
 - [x] Compression support (accesses to same/inc/dec address)
 - [x] Interrupt support
+- [x] Variable interrupt threshold 
 
 ## TODOs:
 - [x] Fix interrupts in the testbench
 - [x] Check compatibility with latest airisc_core_complex
-- [ ] Get final interrupt ids
 - [x] Get final base address for iTMU/dTMU
+- [ ] Get final interrupt ids
 - [ ] How much area will the iTMU/dTMU use? Do we need to reduce size further?
