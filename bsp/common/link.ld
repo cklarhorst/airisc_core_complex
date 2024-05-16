@@ -26,11 +26,13 @@ ENTRY(_reset_entry)
 /*** Makefile to override the default memory configuration! ***/
 
 /* Default memory base addresses */
-__airisc_ram_base   = DEFINED(__airisc_ram_base)   ? __airisc_ram_base   : 0x80000000;
+__airisc_ramT_base   = DEFINED(__airisc_ramT_base)   ? __airisc_ramT_base: 0x80000000;
+__airisc_ram_base   = DEFINED(__airisc_ram_base)   ? __airisc_ram_base   : 0x80004000;
 __airisc_ccram_base = DEFINED(__airisc_ccram_base) ? __airisc_ccram_base : 0x80169000;
 __airisc_xmem_base  = DEFINED(__airisc_xmem_base)  ? __airisc_xmem_base  : 0x8016D000;
 
 /* Default memory sizes */
+__airisc_ramT_size   = DEFINED(__airisc_ramT_size)   ? __airisc_ram_size : 0x00004000;
 __airisc_ram_size   = DEFINED(__airisc_ram_size)   ? __airisc_ram_size   : 0x00169000;
 __airisc_ccram_size = DEFINED(__airisc_ccram_size) ? __airisc_ccram_size : 0x00004000;
 __airisc_xmem_size  = DEFINED(__airisc_xmem_size)  ? __airisc_xmem_size  : 0x00000000;
@@ -38,6 +40,7 @@ __airisc_xmem_size  = DEFINED(__airisc_xmem_size)  ? __airisc_xmem_size  : 0x000
 
 MEMORY
 {
+  TEXT (rwx)    : ORIGIN = __airisc_ramT_base,   LENGTH = __airisc_ramT_size
   RAM (rwx)     : ORIGIN = __airisc_ram_base,   LENGTH = __airisc_ram_size
   CCRAM (rwx)   : ORIGIN = __airisc_ccram_base, LENGTH = __airisc_ccram_size
   EXT_MEM (rwx) : ORIGIN = __airisc_xmem_base,  LENGTH = __airisc_xmem_size
@@ -50,12 +53,12 @@ SECTIONS
 
   .init : {
     KEEP (*(SORT_NONE(.init)))
-    } > RAM
+    } > TEXT
 
 
   .reset_entry : {
     crt0.o(.text)
-  } > RAM
+  } > TEXT
 
 
   .text : {
@@ -65,7 +68,7 @@ SECTIONS
     *(.text.startup .text.startup.*)
     *(.text .text.*)
     *(.gnu.linkonce.t.*)
-  } > RAM
+  } > TEXT
 
 
   .fini : {
