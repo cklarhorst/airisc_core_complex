@@ -64,7 +64,7 @@
 /**********************************************************************//**
  * Prototypes
  **************************************************************************/
-void __attribute__((__interrupt__, aligned(4))) __trap_entry(void);
+void __attribute__((naked, aligned(4))) __trap_entry(void);
 void interrupt_handler(uint32_t cause, uint32_t epc);
 void exception_handler(uint32_t cause, uint32_t epc, uint32_t tval);
 int  get_num_xirq(void);

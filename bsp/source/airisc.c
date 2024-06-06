@@ -28,7 +28,7 @@
  * @note The crt0 start-up code will initialize MTVEC with the address
  * of this function.
  **************************************************************************/
-void __attribute__ ((weak, __interrupt__, aligned(4))) __trap_entry(void)
+void __attribute__ ((weak, naked, aligned(4))) __trap_entry(void)
 {
 	uint32_t mcause = cpu_csr_read(CSR_MCAUSE);
 	uint32_t mepc   = cpu_csr_read(CSR_MEPC);
