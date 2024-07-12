@@ -137,7 +137,10 @@ SECTIONS
     *(.stack*)
   } > CCRAM
 
-
+  .marker : {
+     . = ALIGN(4);
+  } > CCRAM
+ 
   /* Set stack top to end of RAM, and stack limit move down by
    * size of stack_dummy section */
   _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
